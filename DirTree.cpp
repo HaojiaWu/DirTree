@@ -26,13 +26,16 @@ std::string formatFileSize(uintmax_t size) {
     return oss.str();
 }
 
-void generateHTML(const fs::path& path, std::ofstream& outFile, int depth = 0) {
+void generateHTML(const fs::path& path, std::ofstream& outFile, int depth = 0, bool isTopLevel = false) {
     std::string indent(depth * 20, ' ');
 
     if (fs::is_directory(path)) {
         outFile << indent << "<li>" << std::endl;
         outFile << indent << "  <details>" << std::endl;
-        outFile << indent << "    <summary>" << path.filename().string() << " (Directory)" << "</summary>" << std::endl;
+
+        std::string displayName = isTopLevel ? path.string() : path.filename().string();
+
+        outFile << indent << "    <summary>" << displayName << " (Directory)" << "</summary>" << std::endl;
         outFile << indent << "    <ul>" << std::endl;
 
         for (const auto& entry : fs::directory_iterator(path)) {
@@ -43,7 +46,7 @@ void generateHTML(const fs::path& path, std::ofstream& outFile, int depth = 0) {
         outFile << indent << "  </details>" << std::endl;
         outFile << indent << "</li>" << std::endl;
     } else if (fs::is_regular_file(path)) {
-        outFile << indent << "<li>" << path.filename().string() << " (" 
+        outFile << indent << "<li>" << path.filename().string() << " ("
                 << "<strong>" << formatFileSize(fs::file_size(path)) << "</strong>)" << "</li>" << std::endl;
     }
 }
@@ -99,7 +102,7 @@ int main(int argc, char* argv[]) {
     outFile << "<h1>Directory Structure of " << directoryPath << "</h1>" << std::endl;
     outFile << "<ul>" << std::endl;
 
-    generateHTML(directoryPath, outFile);
+    generateHTML(directoryPath, outFile, 0, true);
 
     outFile << "</ul>" << std::endl;
     outFile << "</body>" << std::endl;
@@ -110,4 +113,3 @@ int main(int argc, char* argv[]) {
     std::cout << "HTML file generated: " << outputFileName << std::endl;
     return 0;
 }
-
